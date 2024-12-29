@@ -479,16 +479,20 @@ end;
 
 procedure TDHashTable.FreeAllDataAsObject;
 var
-  I:Integer;
+  I: Integer;
   lvBucket: PDHashData;
 begin
   for I := 0 to High(FBuckets) do
   begin
     lvBucket := FBuckets[I];
-    while lvBucket<>nil do
+    while lvBucket <> nil do
     begin
-      FreeObject(TObject(lvBucket.Data));
-      lvBucket:=lvBucket.Next;
+      if lvBucket.Data <> nil then
+      begin
+        FreeObject(TObject(lvBucket.Data));
+        lvBucket.Data := nil;
+      end;
+      lvBucket := lvBucket.Next;
     end;
   end;
 end;
