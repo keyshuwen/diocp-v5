@@ -12,13 +12,12 @@ unit utils_hashs;
 
 interface
 
-uses
+uses                                               
   SysUtils, SyncObjs, Classes;
-
 
 type
 // 25:XE5
-{$IF CompilerVersion<=25}
+{$IF CompilerVersion <= 25}
   IntPtr = Integer;
 {$IFEND}
 
@@ -28,54 +27,42 @@ type
   /// </summary>
   TDHashValueType = THandle;
 
-  PDHashData=^TDHashData;
-  TDHashData=record
-    Key        : String;      // Data Key    
-    Next       : PDHashData;      // next value
-    Data       : Pointer;         // data
-    Hash       : TDHashValueType; // data hash value
+  PDHashData = ^TDHashData;
+  TDHashData = record
+    Key: String;      // Data Key
+    Next: PDHashData;      // next value
+    Data: Pointer;         // data
+    Hash: TDHashValueType; // data hash value
   end;
 
-  TDBuckets =array of PDHashData;
+  TDBuckets = array of PDHashData;
 
 {$IFDEF UNICODE}
-  TOnDataCompare = reference to function(P1,P2:Pointer): Integer;
-  TOnDHashDataNotify = reference to procedure(pvData:PDHashData);
+  TOnDataCompare = reference to function(P1, P2: Pointer): Integer;
+  TOnDHashDataNotify = reference to procedure(pvData: PDHashData);
   TOnDHashDataNotifyEx = reference to procedure(pvData: PDHashData; pvParamData: Pointer);
-  TOnDataNotify = reference to procedure(pvData:Pointer);
+  TOnDataNotify = reference to procedure(pvData: Pointer);
 {$ELSE}
-  TOnDataCompare = function(P1,P2:Pointer): Integer of object;
-  TOnDHashDataNotify = procedure(pvData:PDHashData) of object;
+  TOnDataCompare = function(P1, P2: Pointer): Integer of object;
+  TOnDHashDataNotify = procedure(pvData: PDHashData) of object;
   TOnDHashDataNotifyEx = procedure(pvData: PDHashData; pvParamData: Pointer) of object;
-  TOnDataNotify = procedure(pvData:Pointer) of object;
+  TOnDataNotify = procedure(pvData: Pointer) of object;
 {$ENDIF}
-  TPointerNotifyProc = procedure(const sender:Pointer; const v:Pointer);
-
+  TPointerNotifyProc = procedure(const sender: Pointer; const v: Pointer);
 
   TDHashTable = class(TObject)
   private
     FOnCompare: TOnDataCompare;
-
     FBucketSize: Cardinal;
-
-    FCount:Integer;
-
-    FBuckets:TDBuckets;
+    FCount: Integer;
+    FBuckets: TDBuckets;
     FOnDelete: TOnDataNotify;
-
-
-    procedure DoDelete(AHash:TDHashValueType; AData:Pointer);
-
+    procedure DoDelete(AHash: TDHashValueType; AData: Pointer);
     procedure CreateHashData(var vData: PDHashData);
     function GetBuckets(AIndex: Cardinal): PDHashData;
-
-
     procedure ReleaseHashData(var vData: PDHashData);
-
-    function InnerCompare(pvData1, pvData2:Pointer): Integer;
-
+    function InnerCompare(pvData1, pvData2: Pointer): Integer;
     procedure SetOnCompare(const Value: TOnDataCompare);
-    
     procedure SetValues(pvHashValue: THandle; const Value: Pointer);
     function GetValues(pvHashValue: THandle): Pointer;
   private
@@ -86,73 +73,55 @@ type
     FBucketAutoSize: Boolean;
   public
     constructor Create(pvBucketSize: Cardinal = 1361);
-
     destructor Destroy; override;
-
     /// <summary>
     ///    循环每一个数据进行回调
     /// </summary>
-    procedure ForEach(pvCallback:TOnDHashDataNotify);overload;
-
+    procedure ForEach(pvCallback: TOnDHashDataNotify);overload;
     /// <summary>
     ///    循环每一个数据进行回调
     /// </summary>
-    procedure ForEach(pvCallback:TPointerNotifyProc); overload;
-
-
-
+    procedure ForEach(pvCallback: TPointerNotifyProc); overload;
     /// <summary>
     ///   循环每一个数据, 带一个扩展的参数数据进行回调
     /// </summary>
-    procedure ForEach(pvCallback:TOnDHashDataNotifyEx; pvParamData:Pointer); overload;
-
+    procedure ForEach(pvCallback: TOnDHashDataNotifyEx; pvParamData: Pointer); overload;
     /// <summary>
     ///   循环每一个数据, 带一个扩展的参数数据进行回调
     /// </summary>
-    procedure ForEach(pvCallback:TPointerNotifyProc; pvParamData:Pointer); overload;
-
+    procedure ForEach(pvCallback: TPointerNotifyProc; pvParamData: Pointer); overload;
     /// <summary>
     ///  add AData
     /// </summary>
     procedure Add(pvHashValue: TDHashValueType; pvData: Pointer);
-
     /// <summary>
     ///  set key->value
     /// </summary>
     procedure SetData(pvHashValue: TDHashValueType; pvData: Pointer);
-
     /// <summary>
     ///   find first item by hashValue
     /// </summary>
-    function FindFirst(pvHashValue:TDHashValueType): PDHashData;
-
-
+    function FindFirst(pvHashValue: TDHashValueType): PDHashData;
     /// <summary>
     ///   find first data by hashValue
     /// </summary>
-    function FindFirstData(pvHashValue:TDHashValueType): Pointer;
-
+    function FindFirstData(pvHashValue: TDHashValueType): Pointer;
     /// <summary>
     ///   clear all data
     /// </summary>
     procedure Clear;
-
     /// <summary>
     ///   delete frist element by hashValue
     /// </summary>
     function DeleteFirst(pvHashValue: TDHashValueType; pvData: Pointer): Boolean; overload;
-
     /// <summary>
     ///   delete frist element by hashValue
     /// </summary>
     function DeleteFirst(pvHashValue: TDHashValueType): Boolean; overload;
-
-
     /// <summary>
     ///   exists?
     /// </summary>
     function Exists(pvHashValue: TDHashValueType; pvData: Pointer): Boolean;overload;
-
     /// <summary>
     ///   exists?
     /// </summary>
@@ -163,48 +132,32 @@ type
     /// </summary>
     function Remove(const pvKey: string): Boolean;
   public
-
-
     /// <summary>
     ///   resize bucket length
     /// </summary>
     procedure SetBucketSize(pvBucketSize:Integer);
-
     procedure FreeAllDataAsObject();
     procedure DisposeAllDataAsPointer;
-
     /// <summary>
     ///   将所有数据写入到List中
     /// </summary>
-    procedure GetDatas(pvList:TList);
-
-    procedure GetKeyList(pvList:TStrings);
-
-    procedure GetEntrySetList(pvList:TList);
-
+    procedure GetDatas(pvList: TList);
+    procedure GetKeyList(pvList: TStrings);
+    procedure GetEntrySetList(pvList: TList);
     /// <summary>
     ///  进行一个赋值，如果键值存在，则不进行赋值， 返回false
     /// </summary>
     function TrySetValue(const pvKey: String; const Value: Pointer): Boolean;
 
     property Buckets[AIndex: Cardinal]: PDHashData read GetBuckets;
-
     property BucketSize: Cardinal read FBucketSize;
-
     property Count: Integer read FCount;
-
     property OnDelete: TOnDataNotify read FOnDelete write FOnDelete;
-
     property OnCompare: TOnDataCompare read FOnCompare write SetOnCompare;
-
     /// 是否自动调整桶大小
     property BucketAutoSize: Boolean read FBucketAutoSize write SetBucketAutoSize;
-
-    property ValueMap[const pvKey:String]: Pointer read GetValueMap write SetValueMap;
-
+    property ValueMap[const pvKey: String]: Pointer read GetValueMap write SetValueMap;
     property Values[pvHashValue: THandle]: Pointer read GetValues write SetValues; default;
-
-
   end;
 
   TDHashTableSafe = class(TDHashTable)
@@ -213,17 +166,13 @@ type
   public
     constructor Create(pvBucketSize: Cardinal = 1361);
     destructor Destroy; override;
-
     procedure Lock();
-
     procedure UnLock;
-
   end;
-
 
 // copy from qdac
 function hashOf(const pvStrData:String): Integer; overload;
-function hashOf(const p:Pointer;l:Integer): Integer; overload;
+function hashOf(const p: Pointer; l: Integer): Integer; overload;
 procedure FreeObject(AObject: TObject);
 
 implementation
@@ -240,28 +189,28 @@ begin
 {$ENDIF}
 end;
 
-function hashOf(const p:Pointer;l:Integer): Integer; overload;
+function hashOf(const p: Pointer; l: Integer): Integer; overload;
 var
-  ps:PInteger;
-  lr:Integer;
+  ps: PInteger;
+  lr: Integer;
 begin
   Result:=0;
-  if l>0 then
+  if l > 0 then
   begin
-    ps:=p;
-    lr:=(l and $03);      //check length is multi 4
-    l:=(l and $FFFFFFFC); //
-    while l>0 do
+    ps := p;
+    lr := (l and $03);      //check length is multi 4
+    l := (l and $FFFFFFFC);
+    while l > 0 do
     begin
-      Result:=((Result shl 5) or (Result shr 27)) xor ps^;
+      Result := ((Result shl 5) or (Result shr 27)) xor ps^;
       Inc(ps);
-      Dec(l,4);
+      Dec(l, 4);
     end;
-    if lr<>0 then
+    if lr <> 0 then
     begin
-      l:=0;
-      Move(ps^,l,lr);
-      Result:=((Result shl 5) or (Result shr 27)) xor l;
+      l := 0;
+      Move(ps^, l, lr);
+      Result := ((Result shl 5) or (Result shr 27)) xor l;
     end;
   end;
 end;
@@ -273,23 +222,21 @@ end;
 
 procedure TDHashTable.Clear;
 var
-  I:Integer;
+  I: Integer;
   lvBucket: PDHashData;
 begin
   for I := 0 to High(FBuckets) do
   begin
     lvBucket := FBuckets[I];
-    while lvBucket<>nil do
+    while lvBucket <> nil do
     begin
-      FBuckets[I]:=lvBucket.Next;
-
+      FBuckets[I] := lvBucket.Next;
       DoDelete(lvBucket.Hash, lvBucket.Data);
       ReleaseHashData(lvBucket);
-
-      lvBucket:=FBuckets[I];
+      lvBucket := FBuckets[I];
     end;
   end;
-  FCount:=0;
+  FCount := 0;
 end;
 
 constructor TDHashTable.Create(pvBucketSize: Cardinal = 1361);
@@ -302,26 +249,25 @@ end;
 
 procedure TDHashTable.Add(pvHashValue: TDHashValueType; pvData: Pointer);
 var
-  lvIndex :Cardinal;
-  lvBucket:PDHashData;
+  lvIndex: Cardinal;
+  lvBucket: PDHashData;
 begin
   CreateHashData(lvBucket);
 
-  lvBucket.Data:=pvData;
-  lvBucket.Hash:=pvHashValue;
+  lvBucket.Data := pvData;
+  lvBucket.Hash := pvHashValue;
 
   lvIndex := pvHashValue mod FBucketSize;
-  lvBucket.Next:=FBuckets[lvIndex];
+  lvBucket.Next := FBuckets[lvIndex];
 
   FBuckets[lvIndex]:=lvBucket;
-
   Inc(FCount);
 
   if FBucketAutoSize and ((FCount div Length(FBuckets)) > 3) then
     SetBucketSize(0);
 end;
 
-function TDHashTable.InnerCompare(pvData1, pvData2:Pointer): Integer;
+function TDHashTable.InnerCompare(pvData1, pvData2: Pointer): Integer;
 begin           
   Result := IntPtr(pvData1) - IntPtr(pvData2);
 end;
@@ -333,13 +279,13 @@ end;
 
 function TDHashTable.DeleteFirst(pvHashValue: TDHashValueType): Boolean;
 var
-  lvIndex:Cardinal;
-  lvCurrData, lvPrior:PDHashData;
+  lvIndex: Cardinal;
+  lvCurrData, lvPrior: PDHashData;
 begin
   Result := False;
-  lvIndex:=pvHashValue mod FBucketSize;
-  lvCurrData:=FBuckets[lvIndex];
-  lvPrior:=nil;
+  lvIndex := pvHashValue mod FBucketSize;
+  lvCurrData := FBuckets[lvIndex];
+  lvPrior := nil;
 
   while Assigned(lvCurrData) do
   begin
@@ -356,10 +302,9 @@ begin
       Dec(FCount);
       Result := true;
       Break;
-    end else
-    begin
-      lvPrior:= lvCurrData;
-      lvCurrData:=lvPrior.Next;
+    end else begin
+      lvPrior := lvCurrData;
+      lvCurrData := lvPrior.Next;
     end;
   end;
 end;
@@ -370,23 +315,21 @@ begin
   inherited;
 end;
 
-procedure TDHashTable.DoDelete(AHash:TDHashValueType; AData:Pointer);
+procedure TDHashTable.DoDelete(AHash: TDHashValueType; AData: Pointer);
 begin
   if Assigned(FOnDelete) then
     FOnDelete(AData);
-
 end;
 
-function TDHashTable.Exists(pvHashValue: TDHashValueType; pvData: Pointer):
-    Boolean;
+function TDHashTable.Exists(pvHashValue: TDHashValueType; pvData: Pointer): Boolean;
 var
-  lvIndex:Cardinal;
-  lvCurrData:PDHashData;
+  lvIndex: Cardinal;
+  lvCurrData: PDHashData;
 begin
   Result := False;
-  lvIndex:=pvHashValue mod FBucketSize;
+  lvIndex := pvHashValue mod FBucketSize;
 
-  lvCurrData:=FBuckets[lvIndex];
+  lvCurrData := FBuckets[lvIndex];
   while Assigned(lvCurrData) do
   begin
     //first compare hash value
@@ -396,19 +339,19 @@ begin
         Result := true;
         Break;
       end;
-    lvCurrData:=lvCurrData.Next;
+    lvCurrData := lvCurrData.Next;
   end;
 end;
 
 function TDHashTable.FindFirst(pvHashValue:TDHashValueType): PDHashData;
 var
-  lvIndex:Cardinal;
-  lvCurrData:PDHashData;
+  lvIndex: Cardinal;
+  lvCurrData: PDHashData;
 begin
   Result := nil;
-  lvIndex:=pvHashValue mod FBucketSize;
+  lvIndex := pvHashValue mod FBucketSize;
 
-  lvCurrData:=FBuckets[lvIndex];
+  lvCurrData := FBuckets[lvIndex];
   while Assigned(lvCurrData) do
   begin
     //compare hash value
@@ -417,19 +360,19 @@ begin
       Result := lvCurrData;
       Break;
     end;
-    lvCurrData:=lvCurrData.Next;
+    lvCurrData := lvCurrData.Next;
   end;
 end;
 
-function TDHashTable.FindFirstData(pvHashValue:TDHashValueType): Pointer;
+function TDHashTable.FindFirstData(pvHashValue: TDHashValueType): Pointer;
 var
-  lvIndex:Cardinal;
-  lvCurrData:PDHashData;
+  lvIndex: Cardinal;
+  lvCurrData: PDHashData;
 begin
   Result := nil;
-  lvIndex:=pvHashValue mod FBucketSize;
+  lvIndex := pvHashValue mod FBucketSize;
 
-  lvCurrData:=FBuckets[lvIndex];
+  lvCurrData := FBuckets[lvIndex];
   while Assigned(lvCurrData) do
   begin
     //compare hash value
@@ -438,41 +381,40 @@ begin
       Result := lvCurrData.Data;
       Break;
     end;
-    lvCurrData:=lvCurrData.Next;
+    lvCurrData := lvCurrData.Next;
   end;
 end;
 
-procedure TDHashTable.ForEach(pvCallback: TOnDHashDataNotifyEx;
-  pvParamData: Pointer);
+procedure TDHashTable.ForEach(pvCallback: TOnDHashDataNotifyEx; pvParamData: Pointer);
 var
-  I:Integer;
+  I: Integer;
   lvBucket: PDHashData;
 begin
   Assert(Assigned(pvCallback));
   for I := 0 to High(FBuckets) do
   begin
     lvBucket := FBuckets[I];
-    while lvBucket<>nil do
+    while lvBucket <> nil do
     begin
       pvCallback(lvBucket, pvParamData);
-      lvBucket:=lvBucket.Next;
+      lvBucket := lvBucket.Next;
     end;
   end;
 end;
 
-procedure TDHashTable.ForEach(pvCallback:TOnDHashDataNotify);
+procedure TDHashTable.ForEach(pvCallback: TOnDHashDataNotify);
 var
-  I:Integer;
+  I: Integer;
   lvBucket: PDHashData;
 begin
   Assert(Assigned(pvCallback));
   for I := 0 to High(FBuckets) do
   begin
     lvBucket := FBuckets[I];
-    while lvBucket<>nil do
+    while lvBucket <> nil do
     begin
       pvCallback(lvBucket);
-      lvBucket:=lvBucket.Next;
+      lvBucket := lvBucket.Next;
     end;
   end;
 end;
@@ -499,27 +441,27 @@ end;
 
 procedure TDHashTable.DisposeAllDataAsPointer;
 var
-  I:Integer;
+  I: Integer;
   lvBucket: PDHashData;
 begin
   for I := 0 to High(FBuckets) do
   begin
     lvBucket := FBuckets[I];
-    while lvBucket<>nil do
+    while lvBucket <> nil do
     begin
       if lvBucket.Data <> nil then
       begin
         Dispose(lvBucket.Data);
-        lvBucket.Data :=nil;
+        lvBucket.Data := nil;
       end;
-      lvBucket:=lvBucket.Next;
+      lvBucket := lvBucket.Next;
     end;
   end;
 end;
 
 function TDHashTable.GetBuckets(AIndex: Cardinal): PDHashData;
 begin
-  if (AIndex>=FBucketSize) then
+  if (AIndex >= FBucketSize) then
   begin
     raise EDHashTableException.CreateFmt(SHashTableIndexError, [AIndex]);
   end;
@@ -534,14 +476,14 @@ end;
 
 function TDHashTable.Remove(const pvKey: string): Boolean;
 var
-  lvIndex, lvHashValue:Cardinal;
-  lvCurrData, lvPrior:PDHashData;
+  lvIndex, lvHashValue: Cardinal;
+  lvCurrData, lvPrior: PDHashData;
 begin
   Result := False;
   lvHashValue := hashOf(LowerCase(pvKey));
-  lvIndex:=lvHashValue mod FBucketSize;
-  lvCurrData:=FBuckets[lvIndex];
-  lvPrior:=nil;
+  lvIndex := lvHashValue mod FBucketSize;
+  lvCurrData := FBuckets[lvIndex];
+  lvPrior := nil;
 
   while Assigned(lvCurrData) do
   begin
@@ -550,7 +492,7 @@ begin
       if Assigned(lvPrior) then
         lvPrior.Next := lvCurrData.Next
       else
-        FBuckets[lvIndex]:= lvCurrData.Next;
+        FBuckets[lvIndex] := lvCurrData.Next;
 
       DoDelete(lvCurrData.Hash, lvCurrData.Data);
 
@@ -558,24 +500,22 @@ begin
       Dec(FCount);
       Result := true;
       Break;
-    end else
-    begin
-      lvPrior:= lvCurrData;
-      lvCurrData:=lvPrior.Next;
+    end else begin
+      lvPrior := lvCurrData;
+      lvCurrData := lvPrior.Next;
     end;
   end;  
 end;
 
-function TDHashTable.DeleteFirst(pvHashValue: TDHashValueType; pvData:
-    Pointer): Boolean;
+function TDHashTable.DeleteFirst(pvHashValue: TDHashValueType; pvData: Pointer): Boolean;
 var
-  lvIndex:Cardinal;
-  lvCurrData, lvPrior:PDHashData;
+  lvIndex: Cardinal;
+  lvCurrData, lvPrior: PDHashData;
 begin
   Result := False;
-  lvIndex:=pvHashValue mod FBucketSize;
-  lvCurrData:=FBuckets[lvIndex];
-  lvPrior:=nil;
+  lvIndex := pvHashValue mod FBucketSize;
+  lvCurrData := FBuckets[lvIndex];
+  lvPrior := nil;
   
   while Assigned(lvCurrData) do
   begin
@@ -584,7 +524,7 @@ begin
       if Assigned(lvPrior) then
         lvPrior.Next := lvCurrData.Next
       else
-        FBuckets[lvIndex]:= lvCurrData.Next;
+        FBuckets[lvIndex] := lvCurrData.Next;
 
       DoDelete(lvCurrData.Hash, lvCurrData.Data);
       
@@ -592,25 +532,22 @@ begin
       Dec(FCount);
       Result := true;
       Break;
-    end else
-    begin
-      lvPrior:= lvCurrData;
-      lvCurrData:=lvPrior.Next;
+    end else begin
+      lvPrior := lvCurrData;
+      lvCurrData := lvPrior.Next;
     end;
   end;   
 end;
 
-
-
 function TDHashTable.Exists(pvHashValue: TDHashValueType): Boolean;
 var
-  lvIndex:Cardinal;
-  lvCurrData:PDHashData;
+  lvIndex: Cardinal;
+  lvCurrData: PDHashData;
 begin
   Result := False;
-  lvIndex:=pvHashValue mod FBucketSize;
+  lvIndex := pvHashValue mod FBucketSize;
 
-  lvCurrData:=FBuckets[lvIndex];
+  lvCurrData := FBuckets[lvIndex];
   while Assigned(lvCurrData) do
   begin
     //compare hash value
@@ -619,71 +556,71 @@ begin
       Result := true;
       Break;
     end;
-    lvCurrData:=lvCurrData.Next;
+    lvCurrData := lvCurrData.Next;
   end;
 end;
 
-procedure TDHashTable.ForEach(pvCallback:TPointerNotifyProc);
+procedure TDHashTable.ForEach(pvCallback: TPointerNotifyProc);
 var
-  I:Integer;
+  I: Integer;
   lvBucket: PDHashData;
 begin
   Assert(Assigned(pvCallback));
   for I := 0 to High(FBuckets) do
   begin
     lvBucket := FBuckets[I];
-    while lvBucket<>nil do
+    while lvBucket <> nil do
     begin
       pvCallback(lvBucket, lvBucket.Data);
-      lvBucket:=lvBucket.Next;
+      lvBucket := lvBucket.Next;
     end;
   end;
 end;
 
-procedure TDHashTable.GetDatas(pvList:TList);
+procedure TDHashTable.GetDatas(pvList: TList);
 var
-  I:Integer;
+  I: Integer;
   lvBucket: PDHashData;
 begin
   for I := 0 to High(FBuckets) do
   begin
     lvBucket := FBuckets[I];
-    while lvBucket<>nil do
+    while lvBucket <> nil do
     begin
       pvList.Add(lvBucket.Data);
-      lvBucket:=lvBucket.Next;
+      lvBucket := lvBucket.Next;
     end;
   end;
 end;
 
-procedure TDHashTable.GetKeyList(pvList:TStrings);
+procedure TDHashTable.GetKeyList(pvList: TStrings);
 var
-  I:Integer;
+  I: Integer;
   lvBucket: PDHashData;
 begin
   for I := 0 to High(FBuckets) do
   begin
     lvBucket := FBuckets[I];
-    while lvBucket<>nil do
+    while lvBucket <> nil do
     begin
       pvList.Add(lvBucket.Key);
-      lvBucket:=lvBucket.Next;
+      lvBucket := lvBucket.Next;
     end;
   end;
 end;
 
 function TDHashTable.GetValueMap(const pvKey: String): Pointer;
 var
-  lvCurrData:PDHashData;
-  lvIndex, lvHashValue:Cardinal;
+  lvCurrData: PDHashData;
+  lvIndex, lvHashValue: Cardinal;
   lvDataKey  : String;
 begin
   Result := nil;
   lvDataKey   := LowerCase(pvKey);
   lvHashValue := hashOf(lvDataKey);
   
-  lvIndex:=lvHashValue mod FBucketSize;
-  lvCurrData:=FBuckets[lvIndex];
+  lvIndex := lvHashValue mod FBucketSize;
+  lvCurrData := FBuckets[lvIndex];
 
   while Assigned(lvCurrData) do
   begin
@@ -693,7 +630,7 @@ begin
       Result := lvCurrData.Data;
       Break;
     end;
-    lvCurrData:=lvCurrData.Next;
+    lvCurrData := lvCurrData.Next;
   end;
 end;
 
@@ -724,16 +661,16 @@ const
     179669557,359339171,718678369,1437356741,2147483647
     );
 var
-  lvIndex, lvBucketSize:Cardinal;
-  I :Integer;
-  lvHash  : TDHashValueType;
+  lvIndex, lvBucketSize: Cardinal;
+  I: Integer;
+  lvHash: TDHashValueType;
   lvOldBuckets: TDBuckets;
   lvData, lvNext: PDHashData;
 begin
   lvBucketSize := pvBucketSize;
-  if lvBucketSize=0 then
+  if lvBucketSize = 0 then
   begin
-    for i:=0 to 27 do
+    for i := 0 to 27 do
     begin
       if BucketNormalSize[i] > FCount then
       begin
@@ -742,8 +679,8 @@ begin
       end;
     end;
 
-    if lvBucketSize=0 then  // max size
-      lvBucketSize:= BucketNormalSize[27];
+    if lvBucketSize = 0 then  // max size
+      lvBucketSize := BucketNormalSize[27];
     if lvBucketSize = FBucketSize then Exit;
   end;
 
@@ -758,14 +695,14 @@ begin
     SetLength(FBuckets, FBucketSize);
 
     // empty
-    for I := 0 to FBucketSize - 1 do FBuckets[I]:=nil;
+    for I := 0 to FBucketSize - 1 do
+      FBuckets[I] := nil;
 
-    
     // rearrange element
     for I := 0 to High(lvOldBuckets) do
     begin        
-      lvData:=lvOldBuckets[I];
-      while lvData<>nil do
+      lvData := lvOldBuckets[I];
+      while lvData <> nil do
       begin
         lvHash := lvData.Hash;
         lvIndex := lvHash mod FBucketSize;
@@ -781,12 +718,12 @@ end;
 
 procedure TDHashTable.SetData(pvHashValue: TDHashValueType; pvData: Pointer);
 var
-  lvPData, lvBucket, lvCurrData:PDHashData;
-  lvIndex:Cardinal;
+  lvPData, lvBucket, lvCurrData: PDHashData;
+  lvIndex: Cardinal;
 begin
   lvPData := nil;
-  lvIndex:=pvHashValue mod FBucketSize;
-  lvCurrData:=FBuckets[lvIndex];
+  lvIndex := pvHashValue mod FBucketSize;
+  lvCurrData := FBuckets[lvIndex];
 
   while Assigned(lvCurrData) do
   begin
@@ -796,21 +733,20 @@ begin
       lvPData := lvCurrData;
       Break;
     end;
-    lvCurrData:=lvCurrData.Next;
+    lvCurrData := lvCurrData.Next;
   end;
 
   // found
   if lvPData <> nil then
   begin
     lvPData.Data := pvData;
-  end else
-  begin  // add
+  end else begin  // add
     CreateHashData(lvBucket);
-    lvBucket.Data:=pvData;
-    lvBucket.Hash:=pvHashValue;
-    
-    lvBucket.Next:=FBuckets[lvIndex];
-    FBuckets[lvIndex]:=lvBucket;
+    lvBucket.Data := pvData;
+    lvBucket.Hash := pvHashValue;
+
+    lvBucket.Next := FBuckets[lvIndex];
+    FBuckets[lvIndex] := lvBucket;
 
     Inc(FCount);
   end;   
@@ -826,16 +762,16 @@ end;
 
 procedure TDHashTable.SetValueMap(const pvKey: String; const Value: Pointer);
 var
-  lvPData, lvBucket, lvCurrData:PDHashData;
-  lvIndex, lvHashValue:Cardinal;
-  lvDataKey  : String;
+  lvPData, lvBucket, lvCurrData: PDHashData;
+  lvIndex, lvHashValue: Cardinal;
+  lvDataKey: String;
 begin
   lvPData := nil;
-  lvDataKey   := LowerCase(pvKey);
+  lvDataKey := LowerCase(pvKey);
   lvHashValue := Cardinal(hashOf(lvDataKey));
   
-  lvIndex:=lvHashValue mod FBucketSize;
-  lvCurrData:=FBuckets[lvIndex];
+  lvIndex := lvHashValue mod FBucketSize;
+  lvCurrData := FBuckets[lvIndex];
 
   while Assigned(lvCurrData) do
   begin
@@ -845,7 +781,7 @@ begin
       lvPData := lvCurrData;
       Break;
     end;
-    lvCurrData:=lvCurrData.Next;
+    lvCurrData := lvCurrData.Next;
   end;
 
   // found
@@ -855,12 +791,12 @@ begin
   end else
   begin  // add
     CreateHashData(lvBucket);
-    lvBucket.Data:=Value;
-    lvBucket.Hash:=lvHashValue;
+    lvBucket.Data := Value;
+    lvBucket.Hash := lvHashValue;
     lvBucket.Key := pvKey;
     
-    lvBucket.Next:=FBuckets[lvIndex];
-    FBuckets[lvIndex]:=lvBucket;
+    lvBucket.Next := FBuckets[lvIndex];
+    FBuckets[lvIndex] := lvBucket;
 
     Inc(FCount);
   end;    
@@ -883,7 +819,6 @@ begin
   inherited Destroy;
 end;
 
-
 procedure TDHashTableSafe.Lock;
 begin
   FLocker.Enter;
@@ -894,54 +829,51 @@ begin
   FLocker.Leave;
 end;
 
-procedure TDHashTable.ForEach(pvCallback: TPointerNotifyProc;
-  pvParamData: Pointer);
+procedure TDHashTable.ForEach(pvCallback: TPointerNotifyProc; pvParamData: Pointer);
 var
-  I:Integer;
+  I: Integer;
   lvBucket: PDHashData;
 begin
   Assert(Assigned(pvCallback));
   for I := 0 to High(FBuckets) do
   begin
     lvBucket := FBuckets[I];
-    while lvBucket<>nil do
+    while lvBucket <> nil do
     begin
       pvCallback(lvBucket, pvParamData);
-      lvBucket:=lvBucket.Next;
+      lvBucket := lvBucket.Next;
     end;
   end;  
 end;
 
 procedure TDHashTable.GetEntrySetList(pvList:TList);
 var
-  I:Integer;
+  I: Integer;
   lvBucket: PDHashData;
 begin
   for I := 0 to High(FBuckets) do
   begin
     lvBucket := FBuckets[I];
-    while lvBucket<>nil do
+    while lvBucket <> nil do
     begin
       pvList.Add(lvBucket);
-      lvBucket:=lvBucket.Next;
+      lvBucket := lvBucket.Next;
     end;
   end;
-
 end;
 
-function TDHashTable.TrySetValue(const pvKey: String; const Value: Pointer):
-    Boolean;
+function TDHashTable.TrySetValue(const pvKey: String; const Value: Pointer): Boolean;
 var
-  lvBucket, lvCurrData:PDHashData;
-  lvIndex, lvHashValue:Cardinal;
-  lvDataKey  : String;
+  lvBucket, lvCurrData: PDHashData;
+  lvIndex, lvHashValue: Cardinal;
+  lvDataKey: String;
 begin
   Result := False;
   lvDataKey   := LowerCase(pvKey);
   lvHashValue := hashOf(lvDataKey);
   
-  lvIndex:=lvHashValue mod FBucketSize;
-  lvCurrData:=FBuckets[lvIndex];
+  lvIndex := lvHashValue mod FBucketSize;
+  lvCurrData := FBuckets[lvIndex];
 
   while Assigned(lvCurrData) do
   begin
@@ -950,18 +882,17 @@ begin
     begin
       Exit;
     end;
-    lvCurrData:=lvCurrData.Next;
+    lvCurrData := lvCurrData.Next;
   end;
-
 
   // add
   CreateHashData(lvBucket);
-  lvBucket.Data:=Value;
-  lvBucket.Hash:=lvHashValue;
+  lvBucket.Data := Value;
+  lvBucket.Hash := lvHashValue;
   lvBucket.Key := pvKey;
 
-  lvBucket.Next:=FBuckets[lvIndex];
-  FBuckets[lvIndex]:=lvBucket;
+  lvBucket.Next := FBuckets[lvIndex];
+  FBuckets[lvIndex] := lvBucket;
 
   Inc(FCount);
   Result := True;
