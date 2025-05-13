@@ -681,7 +681,7 @@ type
     procedure DoCleanUp;virtual;
 
 
-    function GetStateINfo: String; override;
+    function GetStateInfo: String; override;
     
 
     /// <summary>
@@ -1647,7 +1647,10 @@ end;
 
 procedure TIocpClientContext.InnerCloseContext;
 var
-  s, lvDebugStep:String;
+{$IFDEF DIOCP_DEBUG}
+  s: string;
+{$ENDIF}
+  lvDebugStep: string;
 begin
 {$IFDEF DIOCP_DEBUG}
   if FOwner = nil then
@@ -1664,7 +1667,6 @@ begin
     Assert(FRecvQueue.Size = 0);
   end;
 {$ENDIF}
-
 
 {$IFDEF WRITE_LOG}
   if FReferenceCounter <> 0 then
@@ -3828,7 +3830,10 @@ end;
 
 function TDiocpTcpServer.DoSetSocketOptn(pvRawSocket:TRawSocket): Boolean;
 var
-  lvRet, lvErrCode:Integer;
+  lvRet: Integer;
+{$IFDEF DIOCP_DEBUG}
+  lvErrCode: Integer;
+{$ENDIF}
 begin
   Result := True;
   if FKeepAlive then
@@ -3836,10 +3841,10 @@ begin
     Result := SetKeepAlive(pvRawSocket.SocketHandle, FKeepAliveTime);
     if not Result then
     begin
-      {$IFDEF DIOCP_DEBUG}
+    {$IFDEF DIOCP_DEBUG}
       lvErrCode := GetLastError;
       logMessage('FRawSocket.setKeepAliveOption, Error:%d', [lvErrCode]);
-      {$ENDIF}
+    {$ENDIF}
     end;
   end;
 
@@ -3853,16 +3858,13 @@ begin
       begin
         {$IFDEF DIOCP_DEBUG}
         lvErrCode := GetLastError;
-
         logMessage('FClientContext.FRawSocket.SetSendBufferLength, Error:%d', [lvErrCode]);
         {$ENDIF}
-      end else
-      begin
+      end else begin
         lvRet := pvRawSocket.GetSendBufferLength;
         if lvRet <> FSendBufCacheSize then
         begin
           logMessage('FClientContext.FRawSocket.SetSendBufferLength, Curr length:%d', [lvRet]);
-
         end;
       end;
     end;
@@ -3873,11 +3875,10 @@ begin
     Result := pvRawSocket.SetNoDelayOption(FNoDelayOption);
     if not Result then
     begin
-      {$IFDEF DIOCP_DEBUG}
+    {$IFDEF DIOCP_DEBUG}
       lvErrCode := GetLastError;
-
       logMessage('FClientContext.FRawSocket.SetNoDelayOption, Error:%d', [lvErrCode]);
-      {$ENDIF}
+    {$ENDIF}
     end;
   end;
 end;
@@ -3958,24 +3959,31 @@ begin
 end;
 
 function TDiocpTcpServer.GetRecvRequest: TIocpRecvRequest;
+{$IFDEF DIOCP_DEBUG}
 var
-  lvStep:Integer;
+  lvStep: Integer;
+{$ENDIF}
 begin
   if UseObjectPool then
   begin
     Result := TIocpRecvRequest(FRecvRequestPool.DeQueue);
+  {$IFDEF DIOCP_DEBUG}
     lvStep := 0;
+  {$ENDIF}
     if Result = nil then
     begin
       Result := InnerCreateRecvRequest;
+    {$IFDEF DIOCP_DEBUG}
       lvStep := 1;
+    {$ENDIF}
     end;
-  end else
-  begin
+  end else begin
     Result := InnerCreateRecvRequest;
-    lvStep := 2;
-  end;
   {$IFDEF DIOCP_DEBUG}
+    lvStep := 2;
+  {$ENDIF}
+  end;
+{$IFDEF DIOCP_DEBUG}
   if Result.RefCounter > 0 then
   begin
     Assert(Result.RefCounter = 0, Format('step:%d', [lvStep]));
@@ -3987,7 +3995,7 @@ begin
     Assert(False);
   end;
   Result.CheckThreadIn;
-  {$ENDIF}
+{$ENDIF}
   Result.FPostSucc := 0;
   Result.Tag := 0;
   Result.FAlive := true;
@@ -4470,14 +4478,11 @@ begin
 end;
 
 function TIocpAcceptorMgr.GetClientContext: TIocpClientContext;
-var
-  lvClientClass:TIocpClientContextClass;
 begin
   if not FOwner.FUseObjectPool then
   begin
     Result := InnerCreateClientContext;
-  end else
-  begin
+  end else begin
     Result := TIocpClientContext(FContextPool.DeQueue);
     if Result = nil then
     begin
@@ -4495,15 +4500,21 @@ end;
 
 procedure TIocpAcceptorMgr.PostAcceptExRequest;
 var
-  lvRequest:TIocpAcceptExRequest;
-  i:Integer;
+  lvRequest: TIocpAcceptExRequest;
+{$IFDEF DIOCP_DEBUG}
+  i: Integer;
+{$ENDIF}
 begin            
-  if not FListenSocket.SocketValid then Exit;
-  i :=0;
-  {$IFDEF DIOCP_DEBUG}
+  if not FListenSocket.SocketValid then
+    Exit;
+
+{$IFDEF DIOCP_DEBUG}
+  i := 0;
   Assert(FOwner <> nil);
-  {$ENDIF}
-  if not self.FOwner.CanWork then Exit;
+{$ENDIF}
+
+  if not self.FOwner.CanWork then
+    Exit;
 
   try
     lvRequest := GetRequestObject;
@@ -4519,9 +4530,7 @@ begin
       begin
         InterlockedIncrement(FOwner.FDataMoniter.FPostWSAAcceptExCounter);
       end;
-    end else
-    begin     // post fail
-      Inc(i);
+    end else begin // post fail
       try
         // 出现异常，直接释放Context
         lvRequest.FClientContext.RawSocket.Close(False);
@@ -4533,16 +4542,17 @@ begin
       // 归还到对象池
       ReleaseRequestObject(lvRequest);
 
-      {$IFDEF DIOCP_DEBUG}
+    {$IFDEF DIOCP_DEBUG}
+      Inc(i);
       FOwner.logMessage('TIocpAcceptorMgr.PostAcceptExRequest errCounter:%d', [i], CORE_LOG_FILE);
-      {$ENDIF}
+    {$ENDIF}
     end;
   except
     on E:Exception do
     begin
-       {$IFDEF DIOCP_DEBUG}
-       FOwner.logMessage('TIocpAcceptorMgr.PostAcceptExRequest Err:%s', [e.Message], CORE_LOG_FILE);
-       {$ENDIF}
+    {$IFDEF DIOCP_DEBUG}
+      FOwner.logMessage('TIocpAcceptorMgr.PostAcceptExRequest Err:%s', [e.Message], CORE_LOG_FILE);
+    {$ENDIF}
     end;
   end;
 end;
@@ -4907,9 +4917,9 @@ end;
 
 procedure TIocpRecvRequest.HandleResponse;
 var
-  lvDNACounter:Integer;
-  lvDebugInfo:String;
-  lvDebugStep:Integer;
+  lvDNACounter: Integer;
+  lvDebugInfo: string;
+  lvDebugStep: Integer;
 begin
   // 该过程执行中，可以确保不会被关闭
   //   FClientCtx不会被回归
@@ -5040,12 +5050,14 @@ begin
   end;
 end;
 
-function TIocpRecvRequest.PostRecvRequest(pvBuffer:PAnsiChar; len:Cardinal):
-    Boolean;
+function TIocpRecvRequest.PostRecvRequest(pvBuffer:PAnsiChar; len:Cardinal): Boolean;
 var
-  lvRet, lvDNACounter:Integer;
+{$IFDEF DIOCP_DEBUG}
+  lvDNACounter: Integer;
+{$ENDIF}
+  lvRet: Integer;
   lpNumberOfBytesRecvd: Cardinal;
-  lvOwner:TDiocpTcpServer;
+  lvOwner: TDiocpTcpServer;
 begin
   Result := False;
   lpNumberOfBytesRecvd := 0;
@@ -5056,21 +5068,20 @@ begin
   FRecvBuffer.buf := pvBuffer;
   FRecvBuffer.len := len;
 
-  {$IFDEF DIOCP_DEBUG}lvDNACounter := {$ENDIF}InterlockedIncrement(FCounter);
-  {$IFDEF DIOCP_DEBUG}
-  if FClientContext.IncReferenceCounter(Format(
-    'TIocpRecvRequest.WSARecvRequest.Post, DNACounter:%d', [lvDNACounter]), Self) then
-  {$ELSE}
+{$IFDEF DIOCP_DEBUG}lvDNACounter := {$ENDIF}InterlockedIncrement(FCounter);
+{$IFDEF DIOCP_DEBUG}
+  if FClientContext.IncReferenceCounter(Format('TIocpRecvRequest.WSARecvRequest.Post, DNACounter:%d', [lvDNACounter]), Self) then
+{$ELSE}
   if FClientContext.IncReferenceCounter(STRING_EMPTY, nil) then
-  {$ENDIF}
+{$ENDIF}
   begin
-    {$IFDEF DIOCP_DEBUG}
+  {$IFDEF DIOCP_DEBUG}
     if FOverlapped.RefCount <> 0 then
     begin
       Assert(FOverlapped.RefCount = 0);
     end;
     InterlockedIncrement(FOverlapped.refCount);
-    {$ENDIF}
+  {$ENDIF}
 
     self.FPostSucc := 1;
 
@@ -5090,51 +5101,39 @@ begin
       if not Result then
       begin
         self.FPostSucc := 2;
-        {$IFDEF WRITE_LOG}
+      {$IFDEF WRITE_LOG}
         lvOwner.logMessage(strRecvPostError, [FClientContext.SocketHandle, lvRet]);
-        {$ENDIF}
-        {$IFDEF DIOCP_DEBUG}
+      {$ENDIF}
+
+      {$IFDEF DIOCP_DEBUG}
         InterlockedDecrement(FOverlapped.refCount);
-        {$ENDIF}
+      {$ENDIF}
 
         // trigger error event
         lvOwner.DoClientContextError(FClientContext, lvRet);
 
         // decReferenceCounter
-        {$IFDEF DIOCP_DEBUG}
-        FClientContext.DecReferenceCounterAndRequestDisconnect(
-          Format('TIocpRecvRequest.WSARecvRequest.Error:%d', [lvRet]), Self);
-        {$ELSE}
+      {$IFDEF DIOCP_DEBUG}
+        FClientContext.DecReferenceCounterAndRequestDisconnect(Format('TIocpRecvRequest.WSARecvRequest.Error:%d', [lvRet]), Self);
+      {$ELSE}
         FClientContext.DecReferenceCounterAndRequestDisconnect(STRING_EMPTY, Self);
-        {$ENDIF}
-
-      end else
-      begin
+      {$ENDIF}
+      end else begin
         if (lvOwner <> nil) and (lvOwner.FDataMoniter <> nil) then
-        begin
           lvOwner.FDataMoniter.incPostWSARecvCounter;
-        end;
       end;
-    end else
-    begin
+    end else begin
       Result := True;
-    
       if (lvOwner <> nil) and (lvOwner.FDataMoniter <> nil) then
-      begin
         lvOwner.FDataMoniter.incPostWSARecvCounter;
-      end;
     end;   
   end;
 end;
 
 procedure TIocpRecvRequest.ResponseDone;
-var
-  lvContext:TIocpClientContext;
 begin
   inherited;
 {$IFDEF DIOCP_DEBUG}
-  lvContext := self.FClientContext;
-
   if FOwner = nil then
   begin
     if IsDebugMode then
@@ -5143,13 +5142,8 @@ begin
       Assert(Self.FAlive);
     end;
   end;
-//  lvContext.InnerLock;
-//  lvContext.AddDebugString(Format('*(%d):%d,RefCnt:%d TIocpRecvRequest.ResponseDone', [lvContext.FReferenceCounter, IntPtr(Self), self.RefCounter]));
-//  lvContext.InnerUnLock;
 {$ENDIF}
-
   self.DecRef;
-
 end;
 
 function TIocpRecvRequest.PostRecvRequest: Boolean;
@@ -5543,15 +5537,14 @@ begin
   FSendBufferReleaseType := dtNone;
 end;
 
-function TIocpSendRequest.GetStateINfo: String;
+function TIocpSendRequest.GetStateInfo: String;
 begin
   Result :=Format('%s %s', [Self.ClassName, self.Remark]);
   if FResponding then
   begin
     Result :=Result + sLineBreak + Format('start:%s, datalen:%d, max:%d',
       [FormatDateTime('MM-dd hh:nn:ss.zzz', FRespondStartTime), FWSABuf.len, FMaxSize]);
-  end else
-  begin
+  end else begin
     Result :=Result + sLineBreak + Format('start:%s, end:%s, datalen:%d, max:%d',
       [FormatDateTime('MM-dd hh:nn:ss.zzz', FRespondStartTime),
         FormatDateTime('MM-dd hh:nn:ss.zzz', FRespondEndTime),

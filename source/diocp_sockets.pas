@@ -555,7 +555,7 @@ type
 
     procedure DoCleanUp;virtual;
     
-    function GetStateINfo: String; override;
+    function GetStateInfo: String; override;
 
     /// <summary>
     ///   post send buffer to iocp queue
@@ -1921,12 +1921,7 @@ begin
 
 end;
 
-
-
-procedure TDiocpCustomContext.RequestDisconnect(pvReason: string =
-    STRING_EMPTY; pvObj: TObject = nil; pvDoShutDown: Boolean = True);
-var
-  lvStr:String;
+procedure TDiocpCustomContext.RequestDisconnect(pvReason: string = STRING_EMPTY; pvObj: TObject = nil; pvDoShutDown: Boolean = True);
 begin
   if AtomicCmpExchange(self.FReqDisFlag, 1, 0) = 0 then
   begin
@@ -1940,8 +1935,6 @@ begin
     //   FRawSocket.CancelIO;
   end;
 end;
-
-
 
 procedure TDiocpCustomContext.SetOwner(const Value: TDiocpCustom);
 begin
@@ -3180,16 +3173,13 @@ begin
   end;
 end;
 
-function TIocpRecvRequest.PostRequest(pvBuffer: PAnsiChar;
-  len: Cardinal): Boolean;
+function TIocpRecvRequest.PostRequest(pvBuffer: PAnsiChar; len: Cardinal): Boolean;
 var
-  lvRet:Integer;
+  lvRet: Integer;
   lpNumberOfBytesRecvd: Cardinal;
-  lvDataMonitor:TIocpDataMonitor;
-  lvOwner:TDiocpCustom;
+  lvDataMonitor: TIocpDataMonitor;
+  lvOwner: TDiocpCustom;
 begin
-  Result := false;
-
   lpNumberOfBytesRecvd := 0;
   FRecvdFlag := 0;
 
@@ -3204,11 +3194,10 @@ begin
     lvDataMonitor := FOwner.FDataMoniter;
   end;
   
-  {$IFDEF DIOCP_DEBUG}
+{$IFDEF DIOCP_DEBUG}
   InterlockedIncrement(FOverlapped.refCount);
   FDebugInfo := IntToStr(intPtr(FContext));
-  {$ENDIF}
-
+{$ENDIF}
 
   lvRet := diocp_winapi_winsock2.WSARecv(FContext.FRawSocket.SocketHandle,
      @FRecvBuffer,
@@ -3224,28 +3213,25 @@ begin
     Result := lvRet = WSA_IO_PENDING;
     if not Result then
     begin
-      {$IFDEF DIOCP_DEBUG}
+    {$IFDEF DIOCP_DEBUG}
       lvOwner.logMessage(strRecvPostError, [FContext.SocketHandle, lvRet]);
       InterlockedDecrement(FOverlapped.refCount);
-      {$ENDIF}
+    {$ENDIF}
       // trigger error event
       lvOwner.DoClientContextError(FContext, lvRet);
-    end else
-    begin
+    end else begin
       if lvDataMonitor <> nil then
       begin
         lvDataMonitor.incPostWSARecvCounter;
       end;
     end;
-  end else
-  begin
+  end else begin
     Result := True;    
      if lvDataMonitor <> nil then
     begin
       lvDataMonitor.incPostWSARecvCounter;
     end;
   end;
-
 end;
 
 function TIocpRecvRequest.PostRequest: Boolean;
@@ -3524,7 +3510,7 @@ begin
   end;
 end;
 
-function TIocpSendRequest.GetStateINfo: String;
+function TIocpSendRequest.GetStateInfo: String;
 begin
   Result :=Format('%s %s', [Self.ClassName, self.Remark]);
   if FResponding then
@@ -3987,14 +3973,16 @@ end;
 {$ENDIF}
 
 procedure TDiocpCustomContext.AddRefernece;
+{$IFDEF DIOCP_DEBUG}
 var
-  lvDebugInfo:STring;
+  lvDebugInfo: string;
+{$ENDIF}
 begin
   DoCtxStateLock({$IFDEF DIOCP_DEBUG}'AddRefernece:'{$ENDIF});
-  {$IFDEF DIOCP_DEBUG}
+{$IFDEF DIOCP_DEBUG}
   lvDebugInfo := Format('*(%d):[%d]->AddRefernece', [self.FReferenceCounter, self.SocketHandle]);
   AddDebugStrings(lvDebugInfo);
-  {$ENDIF}
+{$ENDIF}
   Inc(FReferenceCounter);
   DoCtxStateUnLock;
 end;

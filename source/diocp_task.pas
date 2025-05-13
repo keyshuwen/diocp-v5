@@ -84,7 +84,7 @@ type
     procedure InnerDoTaskAction;
   protected
     procedure HandleResponse; override;
-    function GetStateINfo: String; override;
+    function GetStateInfo: String; override;
   public
     constructor Create;
     destructor Destroy; override;
@@ -720,7 +720,7 @@ begin
   FFreeType := ftNone;
 end;
 
-function TIocpTaskRequest.GetStateINfo: String;
+function TIocpTaskRequest.GetStateInfo: String;
 var
   lvEndTime:Cardinal;
 begin

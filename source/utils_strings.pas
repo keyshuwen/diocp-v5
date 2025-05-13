@@ -196,8 +196,7 @@ type
   public
     function Read(var Buffer; Count: Longint): Longint; override;
     function Seek(Offset: Longint; Origin: Word): Longint; overload; override;
-    function Seek(const Offset: Int64; Origin: TSeekOrigin): Int64; overload;
-        override;
+    function Seek(const Offset: Int64; Origin: TSeekOrigin): Int64; overload; override;
     function Write(const Buffer; Count: Longint): Longint; override;
     procedure SetSize(NewSize: Longint); override;
   public
@@ -227,10 +226,8 @@ type
     function Append(const w:Word):TDBufferBuilder; overload;
     function Append(const c: Char): TDBufferBuilder; overload;
     function Append(const str: string): TDBufferBuilder; overload;
-    function Append(const str, pvLeftStr, pvRightStr: string): TDBufferBuilder;
-        overload;
-    function Append(v: Boolean; UseBoolStrs: Boolean = True): TDBufferBuilder;
-        overload;
+    function Append(const str, pvLeftStr, pvRightStr: string): TDBufferBuilder; overload;
+    function Append(v: Boolean; UseBoolStrs: Boolean = True): TDBufferBuilder; overload;
     function Append(v:Integer): TDBufferBuilder; overload;
     function Append(v:Double): TDBufferBuilder; overload;
     function AppendUtf8(const str: String): TDBufferBuilder;
@@ -243,8 +240,7 @@ type
 
     function AppendRawStr(const pvRawStr: RAWString): TDBufferBuilder;
     function AppendBreakLineBytes: TDBufferBuilder;
-    function Append(const str: string; pvConvertToUtf8Bytes: Boolean):
-        TDBufferBuilder; overload;
+    function Append(const str: string; pvConvertToUtf8Bytes: Boolean): TDBufferBuilder; overload;
 
     function AppendQuoteStr(const str: string): TDBufferBuilder;
     function AppendSingleQuoteStr(const str: string): TDBufferBuilder;
@@ -321,9 +317,6 @@ type
 
     function GetInstanceSize: Integer;
     function Replace(const data; startIdx, l:Integer): TDBufferBuilder;
-
-
-
 
     /// <summary>
     ///   所有数据长度
@@ -2352,8 +2345,7 @@ begin
   Result := AppendBuffer(@aByte, 1);
 end;
 
-function TDBufferBuilder.Replace(const data; startIdx, l:Integer):
-    TDBufferBuilder;
+function TDBufferBuilder.Replace(const data; startIdx, l:Integer): TDBufferBuilder;
 var
   l1 :Integer;
 begin
@@ -2376,7 +2368,7 @@ begin
   begin
     Inc(FSize, l1);
   end;
-
+  Result := Self;
 end;
 
 function TDBufferBuilder.AppendBreakLineBytes: TDBufferBuilder;
@@ -2394,8 +2386,7 @@ begin
   Result := Self;
 end;
 
-function TDBufferBuilder.AppendBuffer(pvBuffer:PByte; pvLength:Integer):
-    TDBufferBuilder;
+function TDBufferBuilder.AppendBuffer(pvBuffer:PByte; pvLength:Integer): TDBufferBuilder;
 begin
   if FBufferLocked then
   begin
@@ -3369,8 +3360,7 @@ begin
 
 end;
 
-function CheckAddSuffix(const s: string; pvCheckChars: TSysCharSet; suffixChar:
-    Char): string;
+function CheckAddSuffix(const s: string; pvCheckChars: TSysCharSet; suffixChar: Char): string;
 begin
   if RightChar(s) in pvCheckChars then
   begin

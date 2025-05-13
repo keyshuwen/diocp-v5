@@ -218,7 +218,7 @@ type
     FOnASyncEvent: TDiocpASyncEvent;
   protected
     procedure HandleResponse; override;
-    function GetStateINfo: String; override;
+    function GetStateInfo: String; override;
   public
     destructor Destroy; override;
     procedure DoCleanUp;
@@ -940,9 +940,6 @@ begin
 end;
 
 procedure TIocpWorker.WriteStateInfo(const pvStrings: TStrings);
-var
-  s:String;
-  lvLastRequest:TIocpRequest;
 begin
   pvStrings.Add(Format(strDebug_Worker_INfo, [self.ThreadID, FResponseCounter]));
   if FHintInfo <> '' then
@@ -958,18 +955,6 @@ begin
        [boolToStr(CheckFlag(WORKER_ISBUSY), true),
         boolToStr(CheckFlag(WORKER_ISWATING), true),
         boolToStr(CheckFlag(WORKER_RESERVED), true)]));
-
-//    lvLastRequest := FLastRequest;
-//
-//    if (lvLastRequest <> nil) then
-//    begin
-//      s := lvLastRequest.getStateINfo;
-//      if s <> '' then
-//      begin
-//        pvStrings.Add(strDebug_Request_Title);
-//        pvStrings.Add(s);
-//      end;
-//    end;
   end;
 end;
 
@@ -1065,31 +1050,29 @@ end;
 
 function TIocpEngine.CreateWorker(pvIsTempWorker: Boolean): Boolean;
 var
-  i:Integer;
-  AWorker:TIocpWorker;
+  AWorker: TIocpWorker;
 begin
   Result := false;
   FWorkerLocker.lock;
   try
-    if (FMaxWorkerCount > 0) and (FWorkerList.Count >= FMaxWorkerCount) then exit;
+    if (FMaxWorkerCount > 0) and (FWorkerList.Count >= FMaxWorkerCount) then
+      Exit;
 
     AWorker := TIocpWorker.Create(FIocpCore);
     if pvIsTempWorker then
     begin
       AWorker.removeFlag(WORKER_RESERVED);
-    end else
-    begin
+    end else begin
       AWorker.setFlag(WORKER_RESERVED);
     end;
     AWorker.FIocpEngine := Self;
     AWorker.FreeOnTerminate := True;
     FWorkerList.Add(AWorker);
-    {$IFDEF UNICODE}
+  {$IFDEF UNICODE}
     AWorker.Start;
-    {$ELSE}
+  {$ELSE}
     AWorker.Resume;
-    {$ENDIF}
-
+  {$ENDIF}
   finally
     FWorkerLocker.unLock;
   end;
@@ -1192,13 +1175,11 @@ begin
   end;
 end;
 
-function TIocpEngine.GetWorkerStackInfos(pvThreadStackFunc: TThreadStackFunc;
-    pvTimeOut: Cardinal = 3000): string;
+function TIocpEngine.GetWorkerStackInfos(pvThreadStackFunc: TThreadStackFunc; pvTimeOut: Cardinal = 3000): string;
 var
-  lvStrings :TStrings;
-  i, j:Integer;
-  lvWorker:TIocpWorker;
-  lvLastRequest:TIocpRequest;
+  lvStrings: TStrings;
+  i, j: Integer;
+  lvWorker: TIocpWorker;
 begin
   Assert(Assigned(pvThreadStackFunc));
 
@@ -1211,9 +1192,6 @@ begin
       for i := 0 to FWorkerList.Count - 1 do
       begin
         lvWorker := TIocpWorker(FWorkerList[i]);
-
-        //lvLastRequest := lvWorker.FLastRequest;
-
         if (lvWorker.checkFlag(WORKER_ISBUSY)) then
         begin
           if (MSecsPerDay * (Now - lvWorker.FLastResponseStart)) > pvTimeOut then
@@ -1227,11 +1205,11 @@ begin
     finally
       self.FWorkerLocker.Leave;
     end;
+
     if j > 0 then
     begin
       Result := lvStrings.Text;
-    end else
-    begin
+    end else begin
       Result := '';
     end;
   finally
@@ -1241,11 +1219,10 @@ end;
 
 function TIocpEngine.GetWorkerStateInfo(pvTimeOut: Cardinal = 3000): string;
 var
-  lvStrings :TStrings;
-  i, j:Integer;
-  lvWorker:TIocpWorker;
-  lvTickcount:Cardinal;
-  lvNow:TDateTime;
+  lvStrings: TStrings;
+  i, j: Integer;
+  lvWorker: TIocpWorker;
+  lvNow: TDateTime;
 begin
   lvStrings := TStringList.Create;
   try
@@ -1271,11 +1248,11 @@ begin
     finally
       self.FWorkerLocker.Leave;
     end;
+
     if j > 0 then
     begin
       Result := lvStrings.Text;
-    end else
-    begin
+    end else begin
       Result := '';
     end;
   finally
@@ -1775,11 +1752,8 @@ end;
 {$ENDIF}
 
 procedure TIocpRequest.AddRef;
-var
-  r:Integer;
 begin
   AtomicIncrement(FRefCounter);
-
 end;
 
 function TIocpRequest.DecRef: Boolean;
@@ -1884,7 +1858,7 @@ begin
 end;
 
 
-function TIocpASyncRequest.GetStateINfo: String;
+function TIocpASyncRequest.GetStateInfo: String;
 var
   lvEndTime:Cardinal;
 begin

@@ -46,10 +46,8 @@ type
     FEncoder: TDiocpEncoder;
     FDecoder: TDiocpDecoder;
     FOnContextAction: TOnContextAction;
-    procedure DoSendBufferCompleted(pvBuffer: Pointer; len: Cardinal; pvBufferTag,
-        pvErrorCode: Integer); override;
-    procedure OnBlockBufferWrite(pvSender: TObject; pvBuffer: Pointer; pvLength:
-        Integer);
+    procedure DoSendBufferCompleted(pvBuffer: Pointer; len: Cardinal; pvBufferTag, pvErrorCode: Integer); override;
+    procedure OnBlockBufferWrite(pvSender: TObject; pvBuffer: Pointer; pvLength: Integer);
   protected
     function CreateCoderExchange: TDiocpContextCoderExchange;
     /// <summary>
@@ -91,10 +89,8 @@ type
     /// <summary>
     ///   接收到一个对象
     /// </summary>
-    property OnContextAction: TOnContextAction read FOnContextAction write
-        FOnContextAction;
+    property OnContextAction: TOnContextAction read FOnContextAction write FOnContextAction;
   end;
-
 
   TDiocpCoderTcpClient = class(TDiocpTcpClient)
   private
@@ -103,23 +99,14 @@ type
     FBlockBufferPool: PBufferPool;
 
     FOnChildContextAction: TOnChildContextAction;
-    procedure DoChildContextAction(const pvContext: TIocpCoderRemoteContext; const
-        pvActionObject: Pointer);
+    procedure DoChildContextAction(const pvContext: TIocpCoderRemoteContext; const pvActionObject: Pointer);
     procedure OnCreateContext(const pvContext: TDiocpCustomContext); override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
-    property OnChildContextAction: TOnChildContextAction read FOnChildContextAction
-        write FOnChildContextAction;
-
-
+    property OnChildContextAction: TOnChildContextAction read FOnChildContextAction write FOnChildContextAction;
   end;
-
-
-
-
-
 
 implementation
 

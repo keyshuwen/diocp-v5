@@ -328,10 +328,9 @@ end;
 
 procedure TGroupTaskWorker.Execute;
 var
-  lvWaitResult:TWaitResult;
   lvData: Pointer;
-  lvIdleTick:Cardinal;
-  lvFlag:Integer;
+  lvIdleTick: Cardinal;
+  lvFlag: Integer;
 begin
   try
     InterlockedIncrement(FOwner.FWorkerCounter);
@@ -352,14 +351,13 @@ begin
             lvIdleTick := utils_strings.GetTickCount;
             InterlockedDecrement(FOwner.FTaskCounter);
             try
-              {$IFDEF MSWINDOWS}
+            {$IFDEF MSWINDOWS}
               if FOwner.NeedCoInitialize then
               begin
                 CheckCoInitializeEx();
               end;
-              {$ENDIF}
+            {$ENDIF}
               FOwner.DoTask(Self, lvData);
-
             except
               on E:Exception do
               begin
@@ -386,11 +384,11 @@ begin
           // ΩµµÕcpu’º”√
           Sleep(1);
 
-          {$IFDEF MSWINDOWS}
+        {$IFDEF MSWINDOWS}
           SwitchToThread;
-          {$ELSE}
+        {$ELSE}
           TThread.Yield;
-          {$ENDIF}
+        {$ENDIF}
         end;
       except
         on e:Exception do
@@ -404,9 +402,9 @@ begin
     end;
   finally
     FOwner.NotifyDestroyWorker(Self);
-    {$IFDEF MSWINDOWS}
+  {$IFDEF MSWINDOWS}
     if FCoInitialized then CoUninitialize();
-    {$ENDIF}              
+  {$ENDIF}
     InterlockedDecrement(FOwner.FWorkerCounter);
   end;
 

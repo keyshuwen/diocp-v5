@@ -150,26 +150,22 @@ type
   private
     FDisableAutoConnect: Boolean;
     FAutoConnectTick:Cardinal;
-
   private
     /// <summary>
     ///  检测使用重新连接 ,单线程使用，仅供DoAutoReconnect调用
     ///    间隔最少5秒以上
     /// </summary>
-    procedure DoAutoReconnect(pvFileWritter: TSingleFileWriter;
-        pvASyncWorker:TASyncWorker);
+    procedure DoAutoReconnect(pvFileWritter: TSingleFileWriter; pvASyncWorker: TASyncWorker);
 
     /// <summary>
     ///    检测使用重新连接 ,单线程使用，仅供DoASyncCycle调用
     ///    间隔最少5秒以上
     /// </summary>
-    procedure DoASyncCycle(pvASyncWorker:TASyncWorker);
+    procedure DoASyncCycle(pvASyncWorker: TASyncWorker);
     procedure SetTrigerDisconnectEventAfterNoneConnected(const Value: Boolean);
   protected
-    procedure DoASyncWork(pvFileWritter: TSingleFileWriter; pvASyncWorker:
-        TASyncWorker); override;
+    procedure DoASyncWork(pvFileWritter: TSingleFileWriter; pvASyncWorker: TASyncWorker); override;
     procedure SetDisableAutoConnect(const Value: Boolean);
-
     /// <summary>
     ///   occur on create instance
     /// </summary>
@@ -195,19 +191,15 @@ type
     ///   清理Add创建的所有连接
     /// </summary>
     procedure ClearContexts;
-
-
     /// <summary>
     ///   请求断开所有连接，会立刻返回。
     /// </summary>
     procedure DisconnectAll;  override;
-
     /// <summary>
     ///   添加一个连对象(添加到一个List中，DiocpTcpClient对象释放时进行清理释放)
     ///   该连接，可以重复使用
     /// </summary>
     function Add: TIocpRemoteContext;
-
     /// <summary>
     ///   移除一个链接,并进行释放
     /// </summary>
@@ -216,19 +208,13 @@ type
     ///  false: 不是当前对象添加的连接
     /// </returns>
     function RemoveAndFree(aCtx:TIocpRemoteContext): Boolean;
-
     /// <summary>
     ///   pvContext是否是当前列表中的对象
     ///   nil:不是
     /// </summary>
     function CheckContext(pvContext:TObject): TIocpRemoteContext;
 
-    
     function GetStateInfo: String;
-
-
-
-
     /// <summary>
     ///  禁止重连
     ///    请求断开所有
@@ -236,32 +222,24 @@ type
     ///    清理所有
     /// </summary>
     procedure RemoveAllContext;
-
     /// <summary>
     ///   总的连接对象数量
     /// </summary>
     property Count: Integer read GetCount;
-
     /// <summary>
     ///   禁止所有连接对象自动重连
     ///   默认是不禁止
     /// </summary>
-    property DisableAutoConnect: Boolean read FDisableAutoConnect write
-        SetDisableAutoConnect;
-
+    property DisableAutoConnect: Boolean read FDisableAutoConnect write SetDisableAutoConnect;
     /// <summary>
     ///    通过位置索引获取其中的一个连接
     /// </summary>
     property Items[pvIndex: Integer]: TIocpRemoteContext read GetItems; default;
-
     /// <summary>
     ///  为true时: 即使连接失败的情况下，触发OnDisconnected事件, 默认为true
     /// </summary>
-    property TrigerDisconnectEventAfterNoneConnected: Boolean read
-        FTrigerDisconnectEventAfterNoneConnected write
+    property TrigerDisconnectEventAfterNoneConnected: Boolean read FTrigerDisconnectEventAfterNoneConnected write
         SetTrigerDisconnectEventAfterNoneConnected;
-
-
     /// <summary>
     ///   连接失败
     /// </summary>
@@ -628,11 +606,12 @@ end;
 procedure TDiocpTcpClient.DisconnectAll;
 var
   i: Integer;
-  lvContext:TIocpRemoteContext;
-  vAllow:Boolean;
+  lvContext: TIocpRemoteContext;
 begin
   inherited DisconnectAll;
-  if FListLocker = nil then Exit;  
+  if FListLocker = nil then
+    Exit;
+
   FListLocker.Enter;
   try
     for i := 0 to FList.Count - 1 do
@@ -657,8 +636,7 @@ begin
 
 end;
 
-procedure TDiocpTcpClient.DoAutoReconnect(pvFileWritter: TSingleFileWriter;
-    pvASyncWorker:TASyncWorker);
+procedure TDiocpTcpClient.DoAutoReconnect(pvFileWritter: TSingleFileWriter; pvASyncWorker: TASyncWorker);
 var
   i: Integer;
   lvContext:TIocpRemoteContext;
@@ -822,8 +800,7 @@ begin
   inherited;
 end;
 
-procedure TDiocpTcpClient.DoASyncWork(pvFileWritter: TSingleFileWriter;
-    pvASyncWorker: TASyncWorker);
+procedure TDiocpTcpClient.DoASyncWork(pvFileWritter: TSingleFileWriter; pvASyncWorker: TASyncWorker);
 begin
   if tick_diff(FAutoConnectTick, GetTickCount) > 5000 then
   begin
@@ -836,7 +813,7 @@ begin
   end;
 end;
 
-procedure TDiocpTcpClient.DoASyncCycle(pvASyncWorker:TASyncWorker);
+procedure TDiocpTcpClient.DoASyncCycle(pvASyncWorker: TASyncWorker);
 var
   i: Integer;
   lvContext:TIocpRemoteContext;
@@ -875,7 +852,7 @@ begin
   end;
 end;
 
-function TDiocpTcpClient.RemoveAndFree(aCtx:TIocpRemoteContext): Boolean;
+function TDiocpTcpClient.RemoveAndFree(aCtx: TIocpRemoteContext): Boolean;
 begin
   FListLocker.Enter;
   try
@@ -894,11 +871,9 @@ begin
   end;
 end;
 
-procedure TDiocpTcpClient.SetTrigerDisconnectEventAfterNoneConnected(const
-    Value: Boolean);
+procedure TDiocpTcpClient.SetTrigerDisconnectEventAfterNoneConnected(const Value: Boolean);
 begin
   FTrigerDisconnectEventAfterNoneConnected := Value;
 end;
-
 
 end.

@@ -233,11 +233,10 @@ begin
 
 end;
 
-class function TByteTools.BufShowAsString(pvBuf:Pointer; pvBufLength:Integer):
-    String;
+class function TByteTools.BufShowAsString(pvBuf:Pointer; pvBufLength:Integer): String;
 var
-  lvBytes:TBytes;
-  lvBuf:PByte;
+  lvBytes: TBytes;
+  lvBuf: PByte;
   i: Integer;
 begin
   SetLength(lvBytes, pvBufLength + 1);
@@ -254,12 +253,11 @@ begin
     Inc(lvBuf);
   end;
   lvBytes[pvBufLength] := 0;
-  {$IFDEF MSWINDOWS}
+{$IFDEF MSWINDOWS}
   Result := PAnsiChar(@lvBytes[0]);
-  {$ELSE}
+{$ELSE}
   Result := TEncoding.Default.GetString(lvBytes);
-  {$ENDIF}
-
+{$ENDIF}
 end;
 
 class function TByteTools.crc16(const buf; len:Cardinal): Byte;

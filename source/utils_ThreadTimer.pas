@@ -115,7 +115,12 @@ begin
   begin
     FTheadWorker := TThreadWorker.Create(Self);
     FWaitEvent.ResetEvent;
+
+    {$IFDEF UNICODE}
+    FTheadWorker.Start;
+    {$ELSE}
     FTheadWorker.Resume;
+    {$ENDIF}
   end;
 end;
 
